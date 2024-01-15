@@ -580,7 +580,7 @@ impl CosmosBuilder {
             gas_multiplier,
             max_price,
         };
-        cosmos.launch_chain_paused_tracker();
+        // cosmos.launch_chain_paused_tracker();
         Ok(cosmos)
     }
 }

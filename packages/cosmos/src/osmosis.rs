@@ -142,15 +142,15 @@ impl From<ChainPausedMethod> for ChainPausedStatus {
 }
 
 impl Cosmos {
-    pub(crate) fn launch_chain_paused_tracker(&self) {
-        match &self.chain_paused_status {
-            ChainPausedStatus::NoPauseSupport => (),
-            ChainPausedStatus::Osmosis { next_start } => {
-                let weak = WeakCosmos::from(self);
-                tokio::task::spawn(weak.update_osmosis_paused(next_start.clone()));
-            }
-        }
-    }
+    // pub(crate) fn launch_chain_paused_tracker(&self) {
+    //     match &self.chain_paused_status {
+    //         ChainPausedStatus::NoPauseSupport => (),
+    //         ChainPausedStatus::Osmosis { next_start } => {
+    //             let weak = WeakCosmos::from(self);
+    //             tokio::task::spawn(weak.update_osmosis_paused(next_start.clone()));
+    //         }
+    //     }
+    // }
 
     async fn single_osmosis_update(
         &self,
