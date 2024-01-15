@@ -355,24 +355,22 @@ impl Cosmos {
         req: Request,
         cosmos_inner: &mut Node,
     ) -> Result<tonic::Response<Request::Response>, (QueryErrorDetails, bool)> {
-        let duration =
-            tokio::time::Duration::from_secs(self.pool.builder.query_timeout_seconds().into());
         let mut req = tonic::Request::new(req.clone());
         if let Some(height) = self.height {
             // https://docs.cosmos.network/v0.47/run-node/interact-node#query-for-historical-state-using-rest
             let metadata = req.metadata_mut();
             metadata.insert("x-cosmos-block-height", height.into());
         }
-        let res = tokio::time::timeout(duration, GrpcRequest::perform(req, cosmos_inner)).await;
+        let res = GrpcRequest::perform(req, cosmos_inner).await;
         match res {
-            Ok(Ok(res)) => {
+            Ok(res) => {
                 self.check_block_height(
                     res.metadata().get("x-cosmos-block-height"),
                     cosmos_inner.grpc_url(),
                 )?;
                 Ok(res)
             }
-            Ok(Err(status)) => {
+            Err(status) => {
                 let err = QueryErrorDetails::from_tonic_status(status);
                 let can_retry = match err.error_category() {
                     QueryErrorCategory::NetworkIssue => {
@@ -412,10 +410,6 @@ impl Cosmos {
                 };
 
                 Err((err, can_retry))
-            }
-            Err(_) => {
-                cosmos_inner.set_broken(|grpc_url| ConnectionError::TimeoutQuery { grpc_url });
-                Err((QueryErrorDetails::QueryTimeout(duration), true))
             }
         }
     }
